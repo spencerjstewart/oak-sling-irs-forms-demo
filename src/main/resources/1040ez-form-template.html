@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form 1040EZ</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        h1 {
+            margin: 0 auto;
+        }
+        form { max-width: 600px; margin: 0 auto; }
+        label { display: block; margin-top: 10px; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 5px; margin-top: 5px; }
+        input[type="submit"] { display: block; width: 100%; padding: 10px; margin-top: 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h1>Form 1040EZ</h1>
+<form action="/bin/1040ez" method="post">
+    <label for="firstName">First Name:</label>
+    <input type="text" id="firstName" name="firstName" required>
+
+    <label for="lastName">Last Name:</label>
+    <input type="text" id="lastName" name="lastName" required>
+
+    <label for="ssn">Social Security Number:</label>
+    <input type="text" id="ssn" name="ssn" required pattern="\d{3}-\d{2}-\d{4}" title="Please enter a valid SSN (e.g., 123-45-6789)">
+
+    <label for="wages">Wages, salaries, and tips:</label>
+    <input type="number" id="wages" name="wages" required min="0" step="0.01">
+
+    <label for="interestIncome">Taxable interest income:</label>
+    <input type="number" id="interestIncome" name="interestIncome" required min="0" step="0.01">
+
+    <label for="unemploymentCompensation">Unemployment compensation:</label>
+    <input type="number" id="unemploymentCompensation" name="unemploymentCompensation" required min="0" step="0.01">
+
+    <input type="submit" value="Submit Form">
+</form>
+</body>
+</html>
