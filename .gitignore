@@ -31,3 +31,5 @@ replay_pid*
 /.idea/vcs.xml
 /target/
 /.idea/codeStyles/codeStyleConfig.xml
+/project.txt
+/dump-project.sh
