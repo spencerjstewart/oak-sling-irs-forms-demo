@@ -1,51 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form 1040EZ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/apps/oak-sling-irs-forms-demo/css/styles.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form 1040EZ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/apps/oak-sling-irs-forms-demo/css/styles.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 <main class="container bg-white w-50 p-4 mt-5 rounded shadow">
-    <h1 class="mt-4 mb-4">Form 1040EZ</h1>
-    <form action="/bin/1040ez" method="post">
-        <div class="mb-3">
-            <label for="firstName" class="form-label">First Name:</label>
-            <input type="text" class="form-control" id="firstName" name="firstName" required>
-        </div>
+  <h1 class="mt-4 mb-4">Form 1040EZ</h1>
+  <form action="/bin/1040ez" method="post">
+    <div class="mb-3">
+      <label for="firstName" class="form-label">First Name:</label>
+      <input type="text" class="form-control" id="firstName" name="firstName" required>
+    </div>
 
-        <div class="mb-3">
-            <label for="lastName" class="form-label">Last Name:</label>
-            <input type="text" class="form-control" id="lastName" name="lastName" required>
-        </div>
+    <div class="mb-3">
+      <label for="lastName" class="form-label">Last Name:</label>
+      <input type="text" class="form-control" id="lastName" name="lastName" required>
+    </div>
 
-        <div class="mb-3">
-            <label for="ssn" class="form-label">Social Security Number:</label>
-            <input type="text" class="form-control" id="ssn" name="ssn" required pattern="\d{3}-\d{2}-\d{4}"
-                   title="Please enter a valid SSN (e.g., 123-45-6789)">
-        </div>
+    <div class="mb-3">
+      <label for="ssn" class="form-label">Social Security Number:</label>
+      <input type="text" class="form-control" id="ssn" name="ssn" required pattern="\d{3}-\d{2}-\d{4}"
+             title="Please enter a valid SSN (e.g., 123-45-6789)">
+    </div>
 
-        <div class="mb-3">
-            <label for="wages" class="form-label">Wages, salaries, and tips:</label>
-            <input type="number" class="form-control" id="wages" name="wages" required min="0" step="0.01">
-        </div>
+    <div class="mb-3">
+      <label for="wages" class="form-label">Wages, salaries, and tips:</label>
+      <input type="number" class="form-control" id="wages" name="wages" required min="0" step="0.01">
+    </div>
 
-        <div class="mb-3">
-            <label for="interestIncome" class="form-label">Taxable interest income:</label>
-            <input type="number" class="form-control" id="interestIncome" name="interestIncome" required min="0"
-                   step="0.01">
-        </div>
+    <div class="mb-3">
+      <label for="interestIncome" class="form-label">Taxable interest income:</label>
+      <input type="number" class="form-control" id="interestIncome" name="interestIncome" required min="0"
+             step="0.01">
+    </div>
 
-        <div class="mb-3">
-            <label for="unemploymentCompensation" class="form-label">Unemployment compensation:</label>
-            <input type="number" class="form-control" id="unemploymentCompensation" name="unemploymentCompensation"
-                   required min="0" step="0.01">
-        </div>
+    <div class="mb-3">
+      <label for="unemploymentCompensation" class="form-label">Unemployment compensation:</label>
+      <input type="number" class="form-control" id="unemploymentCompensation" name="unemploymentCompensation"
+             required min="0" step="0.01">
+    </div>
 
-        <button type="submit" class="btn btn-primary w-100">Submit Form</button>
-    </form>
+    <button type="submit" class="btn btn-primary w-100">Submit Form</button>
+  </form>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
