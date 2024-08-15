@@ -3,7 +3,10 @@ package com.spencerstewart.servlets;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import javax.jcr.Node;
+import javax.jcr.Repository;
 import javax.jcr.Session;
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -13,6 +16,7 @@ import org.apache.sling.api.resource.ResourceResolver;
 import org.apache.sling.api.servlets.HttpConstants;
 import org.apache.sling.api.servlets.SlingAllMethodsServlet;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +31,9 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 
 	private static final Logger log = LoggerFactory.getLogger(Form1040Servlet.class);
 	private static final String FORM_TEMPLATE = "/1040-form-template.html";
+
+	@Reference
+	private Repository repository;
 
 	@Override
 	protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -57,16 +64,20 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 	@Override
 	protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
 			throws ServletException, IOException {
-
 		try {
 			// Extract form data
-			String firstName = request.getParameter("firstName");
-			String lastName = request.getParameter("lastName");
-			String ssn = request.getParameter("ssn");
-			double wages = Double.parseDouble(request.getParameter("wages"));
-			double interestIncome = Double.parseDouble(request.getParameter("interestIncome"));
-			double unemploymentCompensation =
-					Double.parseDouble(request.getParameter("unemploymentCompensation"));
+			Map<String, String> formData = new HashMap<>();
+			formData.put("filingStatus", request.getParameter("filingStatus"));
+			formData.put("firstName", request.getParameter("firstName"));
+			formData.put("lastName", request.getParameter("lastName"));
+			formData.put("ssn", request.getParameter("ssn"));
+			formData.put("wages", request.getParameter("wages"));
+			formData.put("taxExemptInterest", request.getParameter("taxExemptInterest"));
+			formData.put("taxableInterest", request.getParameter("taxableInterest"));
+			formData.put("qualifiedDividends", request.getParameter("qualifiedDividends"));
+			formData.put("ordinaryDividends", request.getParameter("ordinaryDividends"));
+			formData.put("iraDistributions", request.getParameter("iraDistributions"));
+			formData.put("pensionsAnnuities", request.getParameter("pensionsAnnuities"));
 
 			// Store data in Oak repository
 			ResourceResolver resolver = request.getResourceResolver();
@@ -75,23 +86,24 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 			if (session != null) {
 				try {
 					Node rootNode = session.getRootNode();
-					Node formsNode =
-							rootNode.hasNode("forms") ? rootNode.getNode("forms") : rootNode.addNode("forms");
-					Node formSubmissionNode =
-							formsNode.addNode(firstName + "_" + lastName + "_" + System.currentTimeMillis());
+					Node formsNode = rootNode.hasNode("forms") ? rootNode.getNode("forms") : rootNode.addNode("forms");
+					Node formSubmissionNode = formsNode.addNode(formData.get("firstName") + "_" + formData.get("lastName") + "_" + System.currentTimeMillis());
 
-					formSubmissionNode.setProperty("firstName", firstName);
-					formSubmissionNode.setProperty("lastName", lastName);
-					formSubmissionNode.setProperty("ssn", ssn);
-					formSubmissionNode.setProperty("wages", wages);
-					formSubmissionNode.setProperty("interestIncome", interestIncome);
-					formSubmissionNode.setProperty("unemploymentCompensation", unemploymentCompensation);
+					for (Map.Entry<String, String> entry : formData.entrySet()) {
+						formSubmissionNode.setProperty(entry.getKey(), entry.getValue());
+					}
 
+					session.save();
+
+					// Generate PDF
+					String pdfPath = pdfFormFillerService.fillForm(formData);
+					formSubmissionNode.setProperty("pdfPath", pdfPath);
 					session.save();
 
 					response.setContentType("text/html");
 					response.getWriter().write("<h1>Form Submitted Successfully</h1>");
 					response.getWriter().write("<p>Thank you for submitting your 1040 form.</p>");
+					response.getWriter().write("<p>You can download your filled PDF <a href='/bin/download-pdf?path=" + pdfPath + "'>here</a>.</p>");
 				} finally {
 					session.logout();
 				}
@@ -101,9 +113,7 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 		} catch (Exception e) {
 			log.error("Error processing form submission", e);
 			response.setStatus(SlingHttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			response
-					.getWriter()
-					.write("An error occurred while processing your submission. Please try again later.");
+			response.getWriter().write("An error occurred while processing your submission. Please try again later.");
 		}
 	}
 }
