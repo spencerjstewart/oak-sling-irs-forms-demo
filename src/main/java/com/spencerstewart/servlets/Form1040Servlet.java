@@ -1,5 +1,6 @@
 package com.spencerstewart.servlets;
 
+import com.spencerstewart.services.PDFFormFillerService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -34,6 +35,9 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 
 	@Reference
 	private Repository repository;
+
+	@Reference
+	private PDFFormFillerService pdfFormFillerService;
 
 	@Override
 	protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
