@@ -72,12 +72,6 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 			formData.put("lastName", request.getParameter("lastName"));
 			formData.put("ssn", request.getParameter("ssn"));
 			formData.put("wages", request.getParameter("wages"));
-			formData.put("taxExemptInterest", request.getParameter("taxExemptInterest"));
-			formData.put("taxableInterest", request.getParameter("taxableInterest"));
-			formData.put("qualifiedDividends", request.getParameter("qualifiedDividends"));
-			formData.put("ordinaryDividends", request.getParameter("ordinaryDividends"));
-			formData.put("iraDistributions", request.getParameter("iraDistributions"));
-			formData.put("pensionsAnnuities", request.getParameter("pensionsAnnuities"));
 
 			// Store data in Oak repository
 			ResourceResolver resolver = request.getResourceResolver();
