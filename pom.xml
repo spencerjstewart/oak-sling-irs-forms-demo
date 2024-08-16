@@ -54,6 +54,14 @@
       <artifactId>pdfbox</artifactId>
       <version>2.0.32</version>
     </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache.sling/org.apache.sling.jcr.oak.server -->
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.jcr.oak.server</artifactId>
+      <version>1.3.0</version>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -65,6 +73,16 @@
         <configuration>
           <source>17</source>
           <target>17</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.sling</groupId>
+        <artifactId>sling-maven-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <slingUrl>http://localhost:8080/system/console</slingUrl>
+          <user>admin</user>
+          <password>admin</password>
         </configuration>
       </plugin>
       <plugin>
