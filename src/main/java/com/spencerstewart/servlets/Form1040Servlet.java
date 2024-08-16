@@ -33,11 +33,9 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 	private static final Logger log = LoggerFactory.getLogger(Form1040Servlet.class);
 	private static final String FORM_TEMPLATE = "/1040-form-template.html";
 
-	@Reference
-	private Repository repository;
+	@Reference private Repository repository;
 
-	@Reference
-	private PDFFormFillerService pdfFormFillerService;
+	@Reference private PDFFormFillerService pdfFormFillerService;
 
 	@Override
 	protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
@@ -84,8 +82,15 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 			if (session != null) {
 				try {
 					Node rootNode = session.getRootNode();
-					Node formsNode = rootNode.hasNode("forms") ? rootNode.getNode("forms") : rootNode.addNode("forms");
-					Node formSubmissionNode = formsNode.addNode(formData.get("firstName") + "_" + formData.get("lastName") + "_" + System.currentTimeMillis());
+					Node formsNode =
+							rootNode.hasNode("forms") ? rootNode.getNode("forms") : rootNode.addNode("forms");
+					Node formSubmissionNode =
+							formsNode.addNode(
+									formData.get("firstName")
+											+ "_"
+											+ formData.get("lastName")
+											+ "_"
+											+ System.currentTimeMillis());
 
 					for (Map.Entry<String, String> entry : formData.entrySet()) {
 						formSubmissionNode.setProperty(entry.getKey(), entry.getValue());
@@ -93,15 +98,20 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 
 					session.save();
 
-					// Generate PDF
 					String pdfPath = pdfFormFillerService.fillForm(formData);
-					formSubmissionNode.setProperty("pdfPath", pdfPath);
-					session.save();
 
 					response.setContentType("text/html");
 					response.getWriter().write("<h1>Form Submitted Successfully</h1>");
 					response.getWriter().write("<p>Thank you for submitting your 1040 form.</p>");
-					response.getWriter().write("<p>You can download your filled PDF <a href='/bin/download-pdf?path=" + pdfPath + "'>here</a>.</p>");
+					response
+							.getWriter()
+							.write("<p>You can download your filled PDF <a href='" + pdfPath + "'>here</a>.</p>");
+				} catch (Exception e) {
+					log.error("Error processing form submission", e);
+					response.setStatus(SlingHttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					response
+							.getWriter()
+							.write("An error occurred while processing your submission: " + e.getMessage());
 				} finally {
 					session.logout();
 				}
@@ -111,7 +121,9 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 		} catch (Exception e) {
 			log.error("Error processing form submission", e);
 			response.setStatus(SlingHttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			response.getWriter().write("An error occurred while processing your submission. Please try again later.");
+			response
+					.getWriter()
+					.write("An error occurred while processing your submission. Please try again later.");
 		}
 	}
 }
