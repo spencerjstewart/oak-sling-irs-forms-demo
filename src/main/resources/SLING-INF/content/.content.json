@@ -1,0 +1,13 @@
+{
+  "jcr:primaryType": "nt:unstructured",
+  "rep:policy": {
+    "jcr:primaryType": "rep:ACL",
+    "allow": {
+      "jcr:primaryType": "rep:GrantACE",
+      "rep:principalName": "irs-forms-service",
+      "rep:privileges": [
+        "jcr:all"
+      ]
+    }
+  }
+}
