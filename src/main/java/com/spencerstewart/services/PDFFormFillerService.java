@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 */
 
+// Explicitly declaring the service class prevents unintended service registrations
+// if we ever implement interfaces in this class
 @Component(service = PDFFormFillerService.class)
 public class PDFFormFillerService {
 
@@ -45,10 +47,12 @@ public class PDFFormFillerService {
 	private static final String TEMPLATE_PATH = "/f1040.pdf";
 	private static final String OUTPUT_PATH = "/content/filled-forms";
 
+	// Creates ResourceResolver objects, which interact with Sling's resource tree.
 	@Reference
 	private ResourceResolverFactory resourceResolverFactory;
 
 	public String fillForm(Map<String, String> formData) throws IOException {
+
 		String outputFileName = "form1040_" + System.currentTimeMillis() + ".pdf";
 		log.info("Attempting to fill PDF form. Template: {}, Output: {}", TEMPLATE_PATH, outputFileName);
 
