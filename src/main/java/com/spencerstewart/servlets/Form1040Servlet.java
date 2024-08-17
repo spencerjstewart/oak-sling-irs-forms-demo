@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 		property = {
 				"sling.servlet.methods=" + HttpConstants.METHOD_GET,
 				"sling.servlet.methods=" + HttpConstants.METHOD_POST,
-				"sling.servlet.paths=" + "/bin/1040"
+				"sling.servlet.paths=" + "/1040"
 		})
 public class Form1040Servlet extends SlingAllMethodsServlet {
 
