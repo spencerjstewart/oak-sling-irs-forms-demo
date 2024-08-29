@@ -1,62 +1,46 @@
 package com.spencerstewart.services;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDCheckBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
-import org.apache.sling.api.resource.Resource;
-import org.apache.sling.api.resource.ResourceResolver;
-import org.apache.sling.api.resource.ResourceResolverFactory;
-import org.apache.sling.api.resource.ModifiableValueMap;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/*
-- Sling is a web framework that uses Java Content Repository as a data store.
-	- Uses OSGi for a modular architecture.
-		- Allows loading and unloading of bundles without restarting app.
-- JCR has a resource-oriented architecture.
-	- each URL maps to a resource in the content repository.
-- Apache Jackrabbit Oak is an implementation of the JCR spec.
+import javax.jcr.Node;
+import javax.jcr.Repository;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
 
-- A "resource" in Sling is an abstraction that means any kind of data:
-	- Node in JCR
-	- File or dir in file system.
-	- DB record.
-	- External web service.
-	- Bundle or component in OSGi framework.
-
-
-*/
-
-// Explicitly declaring the service class prevents unintended service registrations
-// if we ever implement interfaces in this class
 @Component(service = PDFFormFillerService.class)
 public class PDFFormFillerService {
 
-	// TODO: Fix logger config
 	private static final Logger log = LoggerFactory.getLogger(PDFFormFillerService.class);
 	private static final String TEMPLATE_PATH = "/f1040.pdf";
 	private static final String OUTPUT_PATH = "/content/filled-forms";
 
-	// Creates ResourceResolver objects, which interact with Sling's resource tree.
 	@Reference
-	private ResourceResolverFactory resourceResolverFactory;
+	private Repository repository;
 
 	public String fillForm(Map<String, String> formData) throws IOException {
 
 		String outputFileName = "form1040_" + System.currentTimeMillis() + ".pdf";
 		log.info("Attempting to fill PDF form. Template: {}, Output: {}", TEMPLATE_PATH, outputFileName);
 
-		try (ResourceResolver resolver = resourceResolverFactory.getAdministrativeResourceResolver(null)) {
+		Session session = null;
+
+		try {
+			// Log in as the admin user
+			session = repository.login(new SimpleCredentials("admin", "admin".toCharArray()));
+
 			InputStream inputStream = getClass().getResourceAsStream(TEMPLATE_PATH);
 
 			if (inputStream == null) {
@@ -89,26 +73,23 @@ public class PDFFormFillerService {
 					throw new IOException("PDF template does not contain a form");
 				}
 
-				Resource outputResource = resolver.getResource(OUTPUT_PATH);
-				if (outputResource == null) {
-					outputResource = resolver.create(resolver.getResource("/content"), "filled-forms", null);
-				}
+				Node rootNode = session.getRootNode();
+				Node outputNode = rootNode.hasNode("content/filled-forms") ? rootNode.getNode("content/filled-forms") : rootNode.addNode("content/filled-forms", JcrConstants.NT_FOLDER);
 
-				Resource fileResource = resolver.create(outputResource, outputFileName, Map.of(JcrConstants.JCR_PRIMARYTYPE, JcrConstants.NT_FILE));
-				Resource contentResource = resolver.create(fileResource, JcrConstants.JCR_CONTENT, Map.of(JcrConstants.JCR_PRIMARYTYPE, JcrConstants.NT_RESOURCE));
+				Node fileNode = outputNode.addNode(outputFileName, JcrConstants.NT_FILE);
+				Node contentNode = fileNode.addNode(JcrConstants.JCR_CONTENT, JcrConstants.NT_RESOURCE);
 
 				File tempFile = File.createTempFile("form1040_", ".pdf");
 				document.save(tempFile);
 				log.info("PDF form filled and saved to temporary file: {}", tempFile.getAbsolutePath());
 
 				try (InputStream fileInputStream = new FileInputStream(tempFile)) {
-					ModifiableValueMap contentMap = contentResource.adaptTo(ModifiableValueMap.class);
-					contentMap.put(JcrConstants.JCR_DATA, fileInputStream);
-					contentMap.put(JcrConstants.JCR_MIMETYPE, "application/pdf");
-					contentMap.put(JcrConstants.JCR_LASTMODIFIED, System.currentTimeMillis());
+					contentNode.setProperty(JcrConstants.JCR_DATA, fileInputStream);
+					contentNode.setProperty(JcrConstants.JCR_MIMETYPE, "application/pdf");
+					contentNode.setProperty(JcrConstants.JCR_LASTMODIFIED, System.currentTimeMillis());
 				}
 
-				resolver.commit();
+				session.save();
 				tempFile.delete();
 
 				return OUTPUT_PATH + "/" + outputFileName;
@@ -116,6 +97,10 @@ public class PDFFormFillerService {
 		} catch (Exception e) {
 			log.error("Error filling PDF form", e);
 			throw new IOException("Error filling PDF form", e);
+		} finally {
+			if (session != null) {
+				session.logout();
+			}
 		}
 	}
 

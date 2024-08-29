@@ -1,16 +1,6 @@
 package com.spencerstewart.servlets;
 
 import com.spencerstewart.services.PDFFormFillerService;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import javax.jcr.Node;
-import javax.jcr.Repository;
-import javax.jcr.Session;
-import javax.servlet.Servlet;
-import javax.servlet.ServletException;
 import org.apache.sling.api.SlingHttpServletRequest;
 import org.apache.sling.api.SlingHttpServletResponse;
 import org.apache.sling.api.resource.ResourceResolver;
@@ -21,6 +11,18 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.Node;
+import javax.jcr.Repository;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+import javax.servlet.Servlet;
+import javax.servlet.ServletException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
 /*
 - @Component marks this class as an OSGi component.
 	- An OSGi component is a class that is treated as a self-contained module that can be loaded
@@ -30,26 +32,22 @@ import org.slf4j.LoggerFactory;
  */
 @Component(
 		// We're telling OSGi to register this component as a service of type Servlet
-			// A Servlet handles HTTP requests and responses
-		service = Servlet.class,
-		property = {
-				"sling.servlet.methods=" + HttpConstants.METHOD_GET,
-				"sling.servlet.methods=" + HttpConstants.METHOD_POST,
-				"sling.servlet.paths=" + "/1040"
-		})
+		// A Servlet handles HTTP requests and responses
+		service = Servlet.class, property = {"sling.servlet.methods=" + HttpConstants.METHOD_GET, "sling.servlet.methods=" + HttpConstants.METHOD_POST, "sling.servlet.paths=" + "/bin/1040"})
 public class Form1040Servlet extends SlingAllMethodsServlet {
 
 	private static final Logger log = LoggerFactory.getLogger(Form1040Servlet.class);
 	private static final String FORM_TEMPLATE = "/1040-form-template.html";
 
 	// Request a JCR Repository dependency
-	@Reference private Repository repository;
+	@Reference
+	private Repository repository;
 
-	@Reference private PDFFormFillerService pdfFormFillerService;
+	@Reference
+	private PDFFormFillerService pdfFormFillerService;
 
 	@Override
-	protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) throws ServletException, IOException {
 
 		log.info("Attempting to load template: {}", FORM_TEMPLATE);
 
@@ -79,8 +77,7 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 	}
 
 	@Override
-	protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response)
-			throws ServletException, IOException {
+	protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) throws ServletException, IOException {
 
 		try {
 			Map<String, String> formData = new HashMap<>();
@@ -97,24 +94,17 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 			// A Session is associated one-to-one with a Workspace object.
 			// A Workspace object represent a view or slice or subtree of the entire content
 			// repository.
-			Session session = resolver.adaptTo(Session.class);
+			Session session = repository.login(new SimpleCredentials("admin", "admin".toCharArray()));
 
 			// Check to see if we successfully obtained a JCR Session.
 			if (session != null) {
 				try {
 					// Here we are getting the root of the Workspace, not the entire repository.
 					Node rootNode = session.getRootNode();
-					Node formsNode =
-							rootNode.hasNode("forms") ? rootNode.getNode("forms") : rootNode.addNode("forms");
+					Node formsNode = rootNode.hasNode("forms") ? rootNode.getNode("forms") : rootNode.addNode("forms");
 					// Each form will be represented by the firstName, lastName, and current time
 					// in milliseconds.
-					Node formSubmissionNode =
-							formsNode.addNode(
-									formData.get("firstName")
-											+ "_"
-											+ formData.get("lastName")
-											+ "_"
-											+ System.currentTimeMillis());
+					Node formSubmissionNode = formsNode.addNode(formData.get("firstName") + "_" + formData.get("lastName") + "_" + System.currentTimeMillis());
 
 					// For each field in the form the user submitted, we create a property using
 					// the key and value from the form field.
@@ -131,15 +121,11 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 					response.setContentType("text/html");
 					response.getWriter().write("<h1>Form Submitted Successfully</h1>");
 					response.getWriter().write("<p>Thank you for submitting your 1040 form.</p>");
-					response
-							.getWriter()
-							.write("<p>You can download your filled PDF <a href='" + pdfPath + "'>here</a>.</p>");
+					response.getWriter().write("<p>You can download your filled PDF <a href='" + pdfPath + "'>here</a>.</p>");
 				} catch (Exception e) {
 					log.error("Error processing form submission", e);
 					response.setStatus(SlingHttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-					response
-							.getWriter()
-							.write("An error occurred while processing your submission: " + e.getMessage());
+					response.getWriter().write("An error occurred while processing your submission: " + e.getMessage());
 				} finally {
 					session.logout();
 				}
@@ -149,9 +135,7 @@ public class Form1040Servlet extends SlingAllMethodsServlet {
 		} catch (Exception e) {
 			log.error("Error processing form submission", e);
 			response.setStatus(SlingHttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			response
-					.getWriter()
-					.write("An error occurred while processing your submission. Please try again later.");
+			response.getWriter().write("An error occurred while processing your submission. Please try again later.");
 		}
 	}
 }
