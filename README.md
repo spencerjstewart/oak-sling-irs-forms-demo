@@ -1,7 +1,7 @@
 # Sling Web App Demo
 
 This project is a demo application demonstrating the usage of Apache Sling and Oak. Users fill out a form asking for tax
-information. Upon submission, the backend processes the data, stores it in a JCR repository, generates a filled 1040 pdf, 
+information. Upon submission, the backend processes the data, stores it in a JCR repository, then generates a filled 1040 pdf, 
 which is downloadable by the user.
 
 ## Technologies Used
